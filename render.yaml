@@ -1,0 +1,7 @@
+services:
+  - type: web
+    name: lopec-api
+    env: python
+    plan: free
+    buildCommand: ""
+    startCommand: python get_lopec_score_api.py
