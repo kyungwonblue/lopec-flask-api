@@ -22,3 +22,6 @@ def get_score():
     html_block = str(parent_div)
 
     return html_block  # 디버깅용 전체 HTML 반환
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=10000)
