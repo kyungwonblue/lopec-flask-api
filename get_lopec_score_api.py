@@ -10,16 +10,20 @@ def get_lopec_score(nickname):
     resp = requests.get(url, headers=headers, timeout=10)
     soup = BeautifulSoup(resp.text, "html.parser")
 
-    # '점수 통계' 바로 아래의 <span class="text">를 찾음
+    # '점수 통계' 섹션을 찾음
     tags = soup.select("span.tag")
     for tag in tags:
         if tag.text.strip() == "점수 통계":
             parent = tag.find_parent("div")
             if parent:
-                text_span = parent.select_one("span.text")
-                if text_span:
-                    return text_span.text.strip()
-
+                spans = parent.select("span.text")
+                for span in spans:
+                    text = span.text.strip().replace(",", "")
+                    try:
+                        score = float(text)
+                        return str(score)
+                    except ValueError:
+                        continue
     return "점수를 찾을 수 없음"
 
 @app.route('/get_score')
@@ -28,7 +32,7 @@ def get_score():
     score = get_lopec_score(nickname)
     return jsonify({'nickname': nickname, 'score': score})
 
-# Render용 포트 바인딩
+# Render 포트 바인딩
 if __name__ == '__main__':
     import os
     port = int(os.environ.get("PORT", 5000))
