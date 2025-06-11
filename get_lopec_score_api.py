@@ -6,44 +6,34 @@ app = Flask(__name__)
 @app.route('/get_score')
 def get_score():
     nickname = request.args.get('nickname', '')
-    
-    # 정확한 API 주소로 바꿔야 함 (아래 URL은 예시입니다. 실제 URL로 대체 필요)
-    url = f"https://lopec.kr/api/search-character?headerCharacterName={nickname}"
-    
+    url = "https://api.lopec.kr/api/character/stats"
     headers = {
-        'User-Agent': 'Mozilla/5.0',
-        'Accept': 'application/json'
+        'Content-Type': 'application/json',
+        'User-Agent': 'Mozilla/5.0'
+    }
+    payload = {
+        "nickname": nickname
     }
 
-    resp = requests.get(url, headers=headers)
-
-    # ✅ 응답 코드가 200인지 확인
-    if resp.status_code != 200:
-        return jsonify({
-            'nickname': nickname,
-            'score': '서버 응답 오류',
-            'status_code': resp.status_code
-        })
-
     try:
-        data = resp.json()
-    except ValueError as e:
-        return jsonify({
-            'nickname': nickname,
-            'score': 'JSON 파싱 오류',
-            'error': str(e)
-        })
+        response = requests.post(url, json=payload, headers=headers)
+        if response.status_code != 200:
+            return jsonify({"nickname": nickname, "score": "API 응답 오류", "error": response.status_code})
 
-    if not data or not isinstance(data, list):
-        return jsonify({'nickname': nickname, 'score': '점수를 찾을 수 없음'})
+        data = response.json()
+        if isinstance(data, list) and len(data) > 0:
+            total_sum = data[0].get("totalSum", None)
+            if total_sum:
+                return jsonify({"nickname": nickname, "score": total_sum})
+            else:
+                return jsonify({"nickname": nickname, "score": "점수 없음"})
+        else:
+            return jsonify({"nickname": nickname, "score": "데이터 없음"})
 
-    try:
-        score = float(data[0].get("totalSum", 0))
-        return jsonify({'nickname': nickname, 'score': round(score, 2)})
-    except (KeyError, ValueError, TypeError):
-        return jsonify({'nickname': nickname, 'score': '점수 추출 실패'})
+    except Exception as e:
+        return jsonify({"nickname": nickname, "score": "오류 발생", "error": str(e)})
 
-# ✅ Render에서 작동시키기 위한 포트 바인딩
+
 if __name__ == '__main__':
     import os
     port = int(os.environ.get("PORT", 10000))
