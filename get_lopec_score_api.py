@@ -1,27 +1,22 @@
 from flask import Flask, request, jsonify
 import requests
-from bs4 import BeautifulSoup
 
 app = Flask(__name__)
 
 @app.route('/get_score')
 def get_score():
     nickname = request.args.get('nickname', '')
-    url = f"https://lopec.kr/search/search.html?headerCharacterName={nickname}"
-    headers = {"User-Agent": "Mozilla/5.0"}
-    resp = requests.get(url, headers=headers, timeout=10)
-    soup = BeautifulSoup(resp.text, "html.parser")
+    url = f"https://lopec.kr/api/character/ranking?nickname={nickname}"
+    headers = {'User-Agent': 'Mozilla/5.0'}
 
-    # 디버깅: '점수 통계' div 블록만 추출해 전달
-    tag = soup.find("span", class_="tag", string="점수 통계")
-    if not tag:
-        return "DEBUG: '점수 통계' 태그를 못 찾았어요"
-    parent_div = tag.find_parent("div")
-    if not parent_div:
-        parent_div = tag.find_parent()
-    html_block = str(parent_div)
+    try:
+        resp = requests.get(url, headers=headers, timeout=5)
+        data = resp.json()
 
-    return html_block  # 디버깅용 전체 HTML 반환
-
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=10000)
+        if data and isinstance(data, list) and 'totalSum' in data[0]:
+            score = round(float(data[0]['totalSum']), 2)  # 소수점 둘째 자리까지만 표시
+            return jsonify({'nickname': nickname, 'score': score})
+        else:
+            return jsonify({'nickname': nickname, 'score': '점수를 찾을 수 없음'})
+    except Exception as e:
+        return jsonify({'nickname': nickname, 'score': '오류 발생', 'error': str(e)})
