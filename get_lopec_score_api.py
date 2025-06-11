@@ -20,3 +20,8 @@ def get_score():
             return jsonify({'nickname': nickname, 'score': '점수를 찾을 수 없음'})
     except Exception as e:
         return jsonify({'nickname': nickname, 'score': '오류 발생', 'error': str(e)})
+
+if __name__ == '__main__':
+    import os
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host='0.0.0.0', port=port)
