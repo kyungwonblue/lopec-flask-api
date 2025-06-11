@@ -9,30 +9,33 @@ def get_score():
     url = "https://api.lopec.kr/api/character/stats"
     headers = {
         'Content-Type': 'application/json',
-        'User-Agent': 'Mozilla/5.0'
+        'User-Agent': 'Mozilla/5.0',
+        'Origin': 'https://lopec.kr',
+        'Referer': 'https://lopec.kr/'
     }
     payload = {
         "nickname": nickname
     }
 
     try:
-        response = requests.post(url, json=payload, headers=headers)
-        if response.status_code != 200:
-            return jsonify({"nickname": nickname, "score": "API 응답 오류", "error": response.status_code})
+        resp = requests.post(url, json=payload, headers=headers, timeout=10)
 
-        data = response.json()
-        if isinstance(data, list) and len(data) > 0:
-            total_sum = data[0].get("totalSum", None)
-            if total_sum:
-                return jsonify({"nickname": nickname, "score": total_sum})
-            else:
-                return jsonify({"nickname": nickname, "score": "점수 없음"})
-        else:
-            return jsonify({"nickname": nickname, "score": "데이터 없음"})
+        if resp.status_code != 200:
+            return jsonify({'nickname': nickname, 'score': 'API 응답 오류', 'error': resp.status_code})
+
+        data = resp.json()
+
+        if not isinstance(data, list) or not data:
+            return jsonify({'nickname': nickname, 'score': '데이터 없음'})
+
+        total_sum = data[0].get('totalSum')
+        if total_sum is None:
+            return jsonify({'nickname': nickname, 'score': '점수를 찾을 수 없음'})
+
+        return jsonify({'nickname': nickname, 'score': total_sum})
 
     except Exception as e:
-        return jsonify({"nickname": nickname, "score": "오류 발생", "error": str(e)})
-
+        return jsonify({'nickname': nickname, 'score': '오류 발생', 'error': str(e)})
 
 if __name__ == '__main__':
     import os
