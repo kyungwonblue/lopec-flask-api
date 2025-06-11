@@ -27,3 +27,9 @@ def get_score():
         return jsonify({'nickname': nickname, 'score': score})
     else:
         return jsonify({'nickname': nickname, 'score': '점수를 찾을 수 없음'})
+
+if __name__ == '__main__':
+    import os
+    port = int(os.environ.get("PORT", 5000))  # Render가 환경변수로 포트를 지정함
+    app.run(host='0.0.0.0', port=port)
+
