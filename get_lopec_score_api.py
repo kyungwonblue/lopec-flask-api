@@ -44,13 +44,21 @@ def get_score():
         if res2.status_code != 200:
             return jsonify({"error": "Stat API failed", "nickname": nickname, "score": "스탯 조회 실패"}), 500
 
-        data = res2.json()
+        if not res2.text.strip():
+            return jsonify({"error": "Empty response from stats API", "nickname": nickname, "score": "응답 없음"}), 500
 
-        score = round(data[0].get("totalSum", 0), 2) if data and "totalSum" in data[0] else "점수를 찾을 수 없음"
+        try:
+            data = res2.json()
+        except Exception as e:
+            return jsonify({"error": str(e), "nickname": nickname, "score": "JSON 파싱 실패"}), 500
+
+        # totalSum 추출
+        score = round(data[0].get("totalSum", 0), 2) if isinstance(data, list) and data and "totalSum" in data[0] else "점수를 찾을 수 없음"
+
 
         return jsonify({"nickname": nickname, "score": score})
 
-    except Exception as e:
+            except Exception as e:
         return jsonify({"error": str(e), "nickname": nickname, "score": "오류 발생"}), 500
 
 # Render 서버용 포트 바인딩
