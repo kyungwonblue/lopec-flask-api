@@ -40,7 +40,11 @@ def get_score():
         # Step 3: 점수 요청
         stat_url = "https://api.lopec.kr/api/character/stats"
         res2 = requests.post(stat_url, json=payload, headers=headers, timeout=10)
-
+        print("🔍 POST 요청 URL:", stat_url)
+        print("🔍 요청 Payload:", payload)
+        print("🔍 응답 상태코드:", res2.status_code)
+        print("🔍 응답 텍스트:", res2.text)
+        
         if res2.status_code != 200:
             return jsonify({"error": "Stat API failed", "nickname": nickname, "score": "스탯 조회 실패"}), 500
 
@@ -50,7 +54,11 @@ def get_score():
         try:
             data = res2.json()
         except Exception as e:
+            print("⚠️ JSON 파싱 에러:", str(e))
             return jsonify({"error": str(e), "nickname": nickname, "score": "JSON 파싱 실패"}), 500
+
+        # 결과 확인
+        print("✅ 파싱된 응답 데이터:", data)
 
         # totalSum 추출
         score = round(data[0].get("totalSum", 0), 2) if isinstance(data, list) and data and "totalSum" in data[0] else "점수를 찾을 수 없음"
