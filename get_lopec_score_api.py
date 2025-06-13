@@ -46,8 +46,8 @@ def get_score():
         data = response.json()
         print(f"📄 Lopec API 응답 데이터: {data}", flush=True)
 
-        if isinstance(data, list) and len(data) > 0:
-            score = data[0].get('totalSum')
+        if isinstance(data, dict):
+            score = data.get('totalSum')
             if score:
                 score = round(score, 2)
                 print(f"✅ 점수 추출 성공: {score}", flush=True)
