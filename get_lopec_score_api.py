@@ -34,7 +34,8 @@ def get_score():
 
     try:
         response = requests.post(url, json=payload, headers=headers, timeout=10)
-
+        app.logger.info("🔎 Raw response JSON: %s", response.text)
+        
         if response.status_code == 200:
             try:
                 data = response.json()
